@@ -11,7 +11,7 @@ import addon_utils
 from . import bl_info
 from .core.proj.reproj import EPSGIO
 from .core.proj.srs import SRS
-from .core.checkdeps import HAS_GDAL, HAS_PYPROJ, HAS_PIL, HAS_IMGIO
+from .core.checkdeps import HAS_GDAL, HAS_PYPROJ, HAS_PIL, HAS_IMGIO, HAS_INTERNET
 #from .core.settings import getSetting, getSettings, setSettings
 from .core import settings
 
@@ -41,18 +41,23 @@ DEFAULT_CRS = [
 	('EPSG:4326', 'WGS84 latlon', 'Longitude and latitude in degrees, DO NOT USE AS SCENE CRS (this system is defined only for reprojection tasks')
 ]
 
+if HAS_INTERNET: 
+	DEFAULT_DEM_SERVER = [
+		("https://portal.opentopography.org/API/globaldem?demtype=SRTMGL1&west={W}&east={E}&south={S}&north={N}&outputFormat=GTiff", 'OpenTopography SRTM 30m', 'OpenTopography.org web service for SRTM 30m global DEM'),
+		("https://portal.opentopography.org/API/globaldem?demtype=SRTMGL3&west={W}&east={E}&south={S}&north={N}&outputFormat=GTiff", 'OpenTopography SRTM 90m', 'OpenTopography.org web service for SRTM 90m global DEM'),
+		("http://www.gmrt.org/services/GridServer?west={W}&east={E}&south={S}&north={N}&layer=topo&format=geotiff&resolution=high", 'Marine-geo.org GMRT', 'Marine-geo.org web service for GMRT global DEM (terrestrial (ASTER) and bathymetry)')
+	]
+else:
+    DEFAULT_DEM_SERVER = []
 
-DEFAULT_DEM_SERVER = [
-	("https://portal.opentopography.org/API/globaldem?demtype=SRTMGL1&west={W}&east={E}&south={S}&north={N}&outputFormat=GTiff", 'OpenTopography SRTM 30m', 'OpenTopography.org web service for SRTM 30m global DEM'),
-	("https://portal.opentopography.org/API/globaldem?demtype=SRTMGL3&west={W}&east={E}&south={S}&north={N}&outputFormat=GTiff", 'OpenTopography SRTM 90m', 'OpenTopography.org web service for SRTM 90m global DEM'),
-	("http://www.gmrt.org/services/GridServer?west={W}&east={E}&south={S}&north={N}&layer=topo&format=geotiff&resolution=high", 'Marine-geo.org GMRT', 'Marine-geo.org web service for GMRT global DEM (terrestrial (ASTER) and bathymetry)')
-]
-
-DEFAULT_OVERPASS_SERVER =  [
-	("https://lz4.overpass-api.de/api/interpreter", 'overpass-api.de', 'Main Overpass API instance'),
-	("http://overpass.openstreetmap.fr/api/interpreter", 'overpass.openstreetmap.fr', 'French Overpass API instance'),
-	("https://overpass.kumi.systems/api/interpreter", 'overpass.kumi.systems', 'Kumi Systems Overpass Instance')
-]
+if HAS_INTERNET: 
+	DEFAULT_OVERPASS_SERVER =  [
+		("https://lz4.overpass-api.de/api/interpreter", 'overpass-api.de', 'Main Overpass API instance'),
+		("http://overpass.openstreetmap.fr/api/interpreter", 'overpass.openstreetmap.fr', 'French Overpass API instance'),
+		("https://overpass.kumi.systems/api/interpreter", 'overpass.kumi.systems', 'Kumi Systems Overpass Instance')
+	]
+else:
+    DEFAULT_OVERPASS_SERVER = []
 
 #default filter tags for OSM import
 DEFAULT_OSM_TAGS = [
@@ -117,7 +122,8 @@ class BGIS_PREFS(AddonPreferences):
 			items.append( ('PYPROJ', 'pyProj', 'Force pyProj as reprojection engine') )
 		#if EPSGIO.ping(): #too slow
 		#	items.append( ('EPSGIO', 'epsg.io', '') )
-		items.append( ('EPSGIO', 'epsg.io', 'Force epsg.io as reprojection engine') )
+		if HAS_INTERNET:
+			items.append( ('EPSGIO', 'epsg.io', 'Force epsg.io as reprojection engine') )
 		items.append( ('BUILTIN', 'Built in', 'Force reprojection through built in Python functions') )
 		return items
 
