@@ -1,6 +1,10 @@
 import logging
 log = logging.getLogger(__name__)
 
+
+HAS_INTERNET = False # Intentionally always False 
+log.debug(f'HAS_INTERNET is {HAS_INTERNET}')
+
 #GDAL
 try:
 	from osgeo import gdal
@@ -35,12 +39,16 @@ else:
 
 
 #Imageio freeimage plugin
-try:
-	from .lib import imageio
-	imageio.plugins._freeimage.get_freeimage_lib() #try to download freeimage lib
-except Exception as e:
-	log.error("Cannot install ImageIO's Freeimage plugin", exc_info=True)
-	HAS_IMGIO = False
+if HAS_INTERNET: 
+	try:
+		from .lib import imageio
+		imageio.plugins._freeimage.get_freeimage_lib() #try to download freeimage lib
+	except Exception as e:
+		log.error("Cannot install ImageIO's Freeimage plugin", exc_info=True)
+		HAS_IMGIO = False
+	else:
+		HAS_IMGIO = True
+		log.debug('ImageIO Freeimage plugin available')
 else:
-	HAS_IMGIO = True
-	log.debug('ImageIO Freeimage plugin available')
+    log.debug(msg='Not installing ImageIO Freeimage plugin:')
+    HAS_IMGIO = False
